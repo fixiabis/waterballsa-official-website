@@ -68,7 +68,7 @@ export function SpeechApplicationForm(props: SpeechApplicationFormProps) {
 							</FormItem>
 						)}
 					/>
-					<FormItem className="w-full flex items-center justify-center space-x-2 space-y-0">
+					<FormItem className="w-full flex items-center justify-end space-x-2 space-y-0">
 						<Button className="py-4 px-6" variant="outline" type="button" onClick={props.onDiscussDescription}>
 							與 AI 聊聊產生描述
 						</Button>

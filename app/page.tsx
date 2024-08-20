@@ -1,12 +1,13 @@
 "use client";
 
 import { useSpeechApiGateway } from "@/components/api-gateway-context";
+import LoadingLayout from "@/components/loading-layout";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import SpeechApplicationLayout from "@/components/speech-application-layout";
 import { StartApplicationForm } from "@/components/start-application-form";
 import { SpeechApiGateway } from "@/lib/api-gateways/speech-api-gateway";
 import { ApplicationDraft } from "@/lib/models/application";
-import { useUser } from "@clerk/nextjs";
+import { useSession, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -20,7 +21,7 @@ type ExternalAccountResource = Exclude<
 export default function Home() {
 	const { isLoaded, user } = useUser();
 	const router = useRouter();
-	const [layout, setLayout] = useState<React.ReactNode>(renderLoadingLayout);
+	const [layout, setLayout] = useState<React.ReactNode>(() => <LoadingLayout />);
 	const speechApiGateway = useSpeechApiGateway();
 
 	useEffect(() => {
@@ -31,14 +32,6 @@ export default function Home() {
 	}, [isLoaded]);
 
 	return layout;
-}
-
-export function renderLoadingLayout() {
-	return (
-		<main className="h-screen flex flex-col items-center justify-center">
-			<LoadingSpinner />
-		</main>
-	);
 }
 
 export function renderStartApplicationLayout(props: {
@@ -59,21 +52,21 @@ export function renderStartApplicationLayout(props: {
 				userUsername={discordUserUsername || ""}
 				userImageUrl={discordUserImageUrl || ""}
 				onSubmit={async (values) => {
-					changeLayout(renderLoadingLayout());
+					changeLayout(<LoadingLayout />);
 
 					const applicationDraft = await speechApiGateway.generateApplicationDraft({
 						abstract: values.abstract,
 						speakerDiscordId: discordUserId,
 					});
 
-					changeLayout(renderSpeechApplicationLayout({ ...props, applicationDraft }));
+					changeLayout(renderApplicationFormLayout({ ...props, applicationDraft }));
 				}}
 			/>
 		</main>
 	);
 }
 
-export function renderSpeechApplicationLayout(props: {
+export function renderApplicationFormLayout(props: {
 	changeLayout: (layout: React.ReactNode) => void;
 	router: AppRouterInstance;
 	speechApiGateway: SpeechApiGateway;
@@ -92,7 +85,7 @@ export function renderSpeechApplicationLayout(props: {
 			speakerDiscordId={discordUserId}
 			speakerEmail={discordUserEmail}
 			onSubmit={async (values) => {
-				changeLayout(renderLoadingLayout());
+				changeLayout(<LoadingLayout />);
 
 				const data = await speechApiGateway.submitApplication({
 					title: values.title,

@@ -1,10 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Application } from "@/lib/models/application";
+import { Application, ApplicationReviewStatus } from "@/lib/models/application";
 import { formatTime } from "@/lib/utils";
 
-export function ApplicationResultView(props: { application: Application }) {
-	const { application } = props;
+export interface ApplicationResultViewProps {
+	application: Application;
+	onCancel: () => void;
+}
+
+const applicationReviewStatusToText: { [key in ApplicationReviewStatus]: string } = {
+	[ApplicationReviewStatus.PENDING]: "待審查",
+	[ApplicationReviewStatus.PASSED]: "已通過",
+	[ApplicationReviewStatus.DENIED]: "已拒絕",
+};
+
+export function ApplicationResultView(props: ApplicationResultViewProps) {
+	const { application, onCancel } = props;
 
 	return (
 		<Card className="w-full max-w-md lg:max-w-xl p-6 grid gap-6">
@@ -21,10 +32,20 @@ export function ApplicationResultView(props: { application: Application }) {
 						<ClockIcon className="w-4 h-4" />
 						<span>{application.durationInMins} 分鐘</span>
 					</div>
+					<div className="flex items-center gap-2">
+						<ClipboardIcon className="w-4 h-4" />
+						<span>{applicationReviewStatusToText[application.applicationReviewStatus]}</span>
+					</div>
 				</div>
 			</div>
 			<div className="flex justify-end gap-2">
-				<Button variant="outline">取消</Button>
+				<Button
+					variant="destructive"
+					onClick={onCancel}
+					disabled={application.applicationReviewStatus === ApplicationReviewStatus.DENIED}
+				>
+					取消上菜
+				</Button>
 			</div>
 		</Card>
 	);
@@ -68,6 +89,26 @@ function ClockIcon(props: React.SVGProps<SVGSVGElement>) {
 		>
 			<circle cx="12" cy="12" r="10" />
 			<polyline points="12 6 12 12 16 14" />
+		</svg>
+	);
+}
+
+function ClipboardIcon(props: React.SVGProps<SVGSVGElement>) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+			<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
 		</svg>
 	);
 }

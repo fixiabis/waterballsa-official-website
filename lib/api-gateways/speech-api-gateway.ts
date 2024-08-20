@@ -1,3 +1,5 @@
+import { Application, ApplicationDraft } from "../models/application";
+
 export interface SpeechApiGateway {
 	generateApplicationDraft(request: GenerateApplicationDraftRequest): Promise<ApplicationDraft>;
 
@@ -13,12 +15,6 @@ export interface GenerateApplicationDraftRequest {
 	speakerDiscordId: string;
 }
 
-export interface ApplicationDraft {
-	title: string;
-	description: string;
-	speakerName: string;
-}
-
 export interface SubmitApplicationRequest {
 	title: string;
 	description: string;
@@ -26,21 +22,4 @@ export interface SubmitApplicationRequest {
 	speakerDiscordId: string;
 	eventStartTime: number;
 	durationInMins: number;
-}
-
-export interface Application {
-	speechId: string;
-	title: string;
-	description: string;
-	speakerName: string;
-	speakerDiscordId: string;
-	eventStartTime: number;
-	durationInMins: number;
-	applicationReviewStatus: ApplicationReviewStatus;
-}
-
-export const enum ApplicationReviewStatus {
-	PENDING = "PENDING",
-	PASSED = "PASSED",
-	DENIED = "DENIED",
 }

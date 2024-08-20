@@ -26,8 +26,7 @@ export function SpeechApplicationForm(props: SpeechApplicationFormProps) {
 	const { form } = props;
 
 	return (
-		<Card className="w-full max-w-md p-4 rounded-lg shadow-lg">
-			<h1 className="font-bold text-center">上菜申請</h1>
+		<Card className="w-full max-w-md lg:max-w-xl p-4 rounded-lg shadow-lg">
 			<Form {...form}>
 				<form className="flex flex-col items-center space-y-3" onSubmit={props.onSubmit}>
 					<FormField
@@ -63,7 +62,7 @@ export function SpeechApplicationForm(props: SpeechApplicationFormProps) {
 							<FormItem className="w-full space-y-1">
 								<FormLabel>描述</FormLabel>
 								<FormControl>
-									<Textarea placeholder="描述" {...field} />
+									<Textarea placeholder="和 AI 聊聊你的上菜內容就能產生描述！" {...field} />
 								</FormControl>
 								<FormMessage className="font-normal text-xs" />
 							</FormItem>
@@ -71,7 +70,7 @@ export function SpeechApplicationForm(props: SpeechApplicationFormProps) {
 					/>
 					<FormItem className="w-full flex items-center justify-center space-x-2 space-y-0">
 						<Button className="py-4 px-6" variant="outline" type="button" onClick={props.onDiscussDescription}>
-							與 AI 聊聊你的上菜內容
+							與 AI 聊聊產生描述
 						</Button>
 						<Button className="py-4 px-6" type="submit">
 							排定活動時間

@@ -1,9 +1,11 @@
 import {
-    GenerateApplicationDraftRequest,
-    SubmitApplicationRequest
+	GenerateApplicationDraftRequest,
+	SpeechApiGateway,
+	SubmitApplicationRequest,
 } from "./speech-api-gateway";
+import { Application } from "../models/application";
 
-export class DefaultSpeechApiGateway {
+export class DefaultSpeechApiGateway implements SpeechApiGateway {
 	private readonly baseUrl: string;
 
 	constructor(baseUrl: string) {
@@ -59,4 +61,20 @@ export class DefaultSpeechApiGateway {
 	}
 
 	public async generateApplicationDescription() {}
+
+	public async getApplication(speechId: string): Promise<Application> {
+		const response = await fetch(`${this.baseUrl}/api/speeches/applications/${speechId}`);
+		const responseData = await response.json();
+
+		return {
+			speechId: responseData.speech_id,
+			title: responseData.title,
+			description: responseData.description,
+			speakerName: responseData.speaker_name,
+			speakerDiscordId: responseData.speaker_discord_id,
+			eventStartTime: responseData.event_start_time,
+			durationInMins: responseData.duration_in_mins,
+			applicationReviewStatus: responseData.application_review_status,
+		};
+	}
 }

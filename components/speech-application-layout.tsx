@@ -7,7 +7,7 @@ import {
 } from "./speech-application-form";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "./ui/drawer";
+import { Drawer, DrawerContent, DrawerDescription, DrawerOverlay, DrawerTitle } from "./ui/drawer";
 import { Textarea } from "./ui/textarea";
 
 export interface SpeechApplicationFormValues extends SpeechApplicationFormValuesWithoutTime {
@@ -38,7 +38,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 
 	if (submittedFormValues) {
 		return (
-			<main className="h-screen flex flex-col items-center justify-center p-12">
+			<main className="h-screen pt-12 px-4 flex flex-col items-center">
 				<h1 className="text-2xl mb-8 font-bold">請選取上菜的時間</h1>
 				<ScheduleForm
 					speakerName={submittedFormValues.speakerName}
@@ -52,7 +52,8 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 	}
 
 	return (
-		<main className="h-screen flex flex-col items-center justify-center">
+		<main className="h-screen pt-12 px-4 flex flex-col items-center">
+			<h1 className="text-2xl mb-8 font-bold">上菜申請</h1>
 			<SpeechApplicationForm
 				form={form}
 				onSubmit={form.handleSubmit((values: SpeechApplicationFormValuesWithoutTime) => {
@@ -63,7 +64,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 			<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
 				<DrawerTitle className="invisible">聊聊你的上菜內容吧</DrawerTitle>
 				<DrawerDescription></DrawerDescription>
-				<DrawerContent className="bg-muted rounded-lg w-full md:w-96 left-auto">
+				<DrawerContent className="bg-muted border-none h-screen md:h-auto rounded-lg w-full md:w-96 left-auto">
 					<header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between shadow-sm rounded-t-lg">
 						<div className="font-medium text-lg">聊聊你的上菜內容吧</div>
 						<Button variant="ghost" size="icon" className="rounded-full" onClick={() => setIsDrawerOpen(false)}>
@@ -71,7 +72,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 							<span className="sr-only">關閉</span>
 						</Button>
 					</header>
-					<div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-72">
+					<div className="flex-1 overflow-y-auto p-4 space-y-4 h-full md:max-h-72">
 						<div className="flex items-start gap-4">
 							<Avatar className="w-10 h-10">
 								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />

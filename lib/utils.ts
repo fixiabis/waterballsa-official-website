@@ -8,10 +8,10 @@ export function cn(...inputs: ClassValue[]) {
 export function formatTime(date: Date) {
 	return date.toLocaleTimeString("zh-TW", {
 		year: "numeric",
-		month: "numeric",
-		day: "numeric",
-		hour: "numeric",
-		minute: "numeric",
-    hour12: false,
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
 	});
 }

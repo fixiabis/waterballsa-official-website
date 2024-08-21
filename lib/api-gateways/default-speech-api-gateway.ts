@@ -54,7 +54,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 			description: responseData.description,
 			speakerName: responseData.speaker_name,
 			speakerDiscordId: responseData.speaker_discord_id,
-			eventStartTime: responseData.event_start_time,
+			eventStartTime: responseData.event_start_time * 1000,
 			durationInMins: responseData.duration_in_mins,
 			applicationReviewStatus: responseData.application_review_status,
 		};
@@ -72,7 +72,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 			description: responseData.description,
 			speakerName: responseData.speaker_name,
 			speakerDiscordId: responseData.speaker_discord_id,
-			eventStartTime: responseData.event_start_time,
+			eventStartTime: responseData.event_start_time * 1000,
 			durationInMins: responseData.duration_in_mins,
 			applicationReviewStatus: responseData.application_review_status,
 		};

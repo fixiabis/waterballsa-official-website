@@ -7,7 +7,7 @@ import { Application } from "@/lib/models/application";
 import { useEffect, useState } from "react";
 
 export interface ApplicationPageProps {
-	id: string;
+	params: { id: string };
 }
 
 export default function ApplicationPage(props: ApplicationPageProps) {
@@ -16,9 +16,9 @@ export default function ApplicationPage(props: ApplicationPageProps) {
 
 	useEffect(() => {
 		speechApiGateway
-			.getApplication(props.id)
+			.getApplication(props.params.id)
 			.then((application) => setLayout(renderApplicationLayout({ changeLayout: setLayout, application })));
-	}, [speechApiGateway, props.id]);
+	}, [speechApiGateway, props.params.id]);
 
 	return layout;
 }

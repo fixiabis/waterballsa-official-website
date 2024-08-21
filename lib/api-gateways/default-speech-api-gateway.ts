@@ -1,8 +1,4 @@
-import {
-	GenerateApplicationDraftRequest,
-	SpeechApiGateway,
-	SubmitApplicationRequest,
-} from "./speech-api-gateway";
+import { GenerateApplicationDraftRequest, SpeechApiGateway, SubmitApplicationRequest } from "./speech-api-gateway";
 import { Application } from "../models/application";
 
 export class DefaultSpeechApiGateway implements SpeechApiGateway {
@@ -60,7 +56,18 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 		};
 	}
 
-	public async generateApplicationDescription() {}
+	startDiscussionAboutSpeechDescription(): Promise<string> {
+		throw new Error("Method not implemented.");
+	}
+
+	sendMessageToDiscussSpeechDescription(
+		discussionId: string,
+		message: string,
+		onUpdateMessage: (message: string) => void,
+		onUpdateDescription: (description: string) => void
+	): Promise<void> {
+		throw new Error("Method not implemented.");
+	}
 
 	public async getApplication(id: string): Promise<Application> {
 		const response = await fetch(`${this.baseUrl}/speeches/applications/${id}`);

@@ -5,7 +5,14 @@ export interface SpeechApiGateway {
 
 	submitApplication(request: SubmitApplicationRequest): Promise<Application>;
 
-	generateApplicationDescription(): Promise<void>;
+	startDiscussionAboutSpeechDescription(): Promise<string>;
+
+	sendMessageToDiscussSpeechDescription(
+		discussionId: string,
+		message: string,
+		onUpdateMessage: (message: string) => void,
+		onUpdateDescription: (description: string) => void
+	): Promise<void>;
 
 	getApplication(speechId: string): Promise<Application>;
 }

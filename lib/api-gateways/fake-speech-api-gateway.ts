@@ -22,7 +22,29 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 		};
 	}
 
-	async generateApplicationDescription() {}
+	async startDiscussionAboutSpeechDescription() {
+		return "0".repeat(32);
+	}
+
+	async sendMessageToDiscussSpeechDescription(
+		discussionId: string,
+		message: string,
+		onUpdateMessage: (message: string) => void,
+		onUpdateDescription: (description: string) => void
+	): Promise<void> {
+		message = `想和你確認一下，你說的 "${message}" 是指什麼呢？`;
+		const messageChunks = message.split("");
+
+		let finalMessage = "";
+
+		for (const messageChunk of messageChunks) {
+			await new Promise((resolve) => setTimeout(resolve, 1000 / messageChunks.length));
+			finalMessage += messageChunk;
+			onUpdateMessage(finalMessage);
+		}
+
+		onUpdateDescription("這是我推薦的描述");
+	}
 
 	async getApplication(id: string) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));

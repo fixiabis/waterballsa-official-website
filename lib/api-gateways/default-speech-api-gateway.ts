@@ -18,7 +18,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 			speaker_discord_id: request.speakerDiscordId,
 		});
 
-		const response = await fetch(`${this.baseUrl}/api/speeches/applications?${query}`);
+		const response = await fetch(`${this.baseUrl}/speeches/applications?${query}`);
 		const responseData = await response.json();
 
 		return {
@@ -38,7 +38,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 			duration_in_mins: request.durationInMins,
 		});
 
-		const response = await fetch(`${this.baseUrl}/api/speeches/applications`, {
+		const response = await fetch(`${this.baseUrl}/speeches/applications`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -49,7 +49,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 		const responseData = await response.json();
 
 		return {
-			speechId: responseData.speech_id,
+			id: responseData.speech_id,
 			title: responseData.title,
 			description: responseData.description,
 			speakerName: responseData.speaker_name,
@@ -62,12 +62,12 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 
 	public async generateApplicationDescription() {}
 
-	public async getApplication(speechId: string): Promise<Application> {
-		const response = await fetch(`${this.baseUrl}/api/speeches/applications/${speechId}`);
+	public async getApplication(id: string): Promise<Application> {
+		const response = await fetch(`${this.baseUrl}/speeches/applications/${id}`);
 		const responseData = await response.json();
 
 		return {
-			speechId: responseData.speech_id,
+			id: responseData.speech_id,
 			title: responseData.title,
 			description: responseData.description,
 			speakerName: responseData.speaker_name,

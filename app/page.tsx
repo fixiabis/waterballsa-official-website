@@ -2,12 +2,11 @@
 
 import { useSpeechApiGateway } from "@/components/api-gateway-context";
 import LoadingLayout from "@/components/loading-layout";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import SpeechApplicationLayout from "@/components/speech-application-layout";
 import { StartApplicationForm } from "@/components/start-application-form";
 import { SpeechApiGateway } from "@/lib/api-gateways/speech-api-gateway";
 import { ApplicationDraft } from "@/lib/models/application";
-import { useSession, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -29,7 +28,7 @@ export default function Home() {
 			const discordAccount = user!.externalAccounts.find((account) => account.provider === "discord")!;
 			setLayout(renderStartApplicationLayout({ changeLayout: setLayout, router, speechApiGateway, discordAccount }));
 		}
-	}, [isLoaded]);
+	}, [isLoaded, router, speechApiGateway, user]);
 
 	return layout;
 }
@@ -75,6 +74,7 @@ export function renderApplicationFormLayout(props: {
 }) {
 	const { changeLayout, speechApiGateway, discordAccount, applicationDraft, router } = props;
 	const discordUserId = discordAccount.providerUserId;
+	const discordUserImageUrl = discordAccount.imageUrl;
 	const discordUserEmail = discordAccount.emailAddress;
 
 	return (
@@ -82,6 +82,7 @@ export function renderApplicationFormLayout(props: {
 			title={applicationDraft.title}
 			description={applicationDraft.description}
 			speakerName={applicationDraft.speakerName}
+			speakerImageUrl={discordUserImageUrl}
 			speakerDiscordId={discordUserId}
 			speakerEmail={discordUserEmail}
 			onSubmit={async (values) => {
@@ -96,7 +97,7 @@ export function renderApplicationFormLayout(props: {
 					durationInMins: 30,
 				});
 
-				router.push(`/applications/${data.speechId}`);
+				router.push(`/applications/${data.id}`);
 			}}
 		/>
 	);

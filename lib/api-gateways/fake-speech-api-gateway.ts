@@ -1,8 +1,4 @@
-import {
-	GenerateApplicationDraftRequest,
-	SpeechApiGateway,
-	SubmitApplicationRequest,
-} from "./speech-api-gateway";
+import { GenerateApplicationDraftRequest, SpeechApiGateway, SubmitApplicationRequest } from "./speech-api-gateway";
 import { ApplicationReviewStatus } from "../models/application";
 
 export class FakeSpeechApiGateway implements SpeechApiGateway {
@@ -15,7 +11,7 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		return {
-			speechId: "0".repeat(32),
+			id: "0".repeat(32),
 			title: request.title,
 			description: request.description,
 			speakerName: request.speakerName,
@@ -28,11 +24,11 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 
 	async generateApplicationDescription() {}
 
-	async getApplication(speechId: string) {
+	async getApplication(id: string) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		return {
-			speechId: "0".repeat(32),
+			id: id,
 			title: "標題".repeat(10),
 			description: "描述".repeat(100),
 			speakerName: "暱稱",

@@ -5,7 +5,7 @@ export interface ApplicationDraft {
 }
 
 export interface Application {
-	speechId: string;
+	id: string;
 	title: string;
 	description: string;
 	speakerName: string;

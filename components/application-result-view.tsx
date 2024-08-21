@@ -38,7 +38,8 @@ export function ApplicationResultView(props: ApplicationResultViewProps) {
 					</div>
 				</div>
 			</div>
-			<div className="flex justify-end gap-2">
+			{/* TODO: 之後支援取消 */}
+			{/* <div className="flex justify-end gap-2">
 				<Button
 					variant="destructive"
 					onClick={onCancel}
@@ -46,7 +47,7 @@ export function ApplicationResultView(props: ApplicationResultViewProps) {
 				>
 					取消上菜
 				</Button>
-			</div>
+			</div> */}
 		</Card>
 	);
 }

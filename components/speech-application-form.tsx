@@ -11,7 +11,7 @@ const formSchema = z.object({
 	speakerName: z.string().trim().min(1, { message: "稱呼不可為空" }),
 	speakerDiscordId: z.string().trim().min(1, { message: "Discord ID 不可為空" }),
 	title: z.string().trim().min(1, { message: "標題不可沒有內容" }),
-	description: z.string().trim().min(1, { message: "描述不可沒有內容" }),
+	description: z.string().trim().min(1, { message: "描述不可沒有內容" }).max(1000, { message: "描述長度不可超過 1000 字" }),
 });
 
 export type SpeechApplicationFormValues = z.infer<typeof formSchema>;

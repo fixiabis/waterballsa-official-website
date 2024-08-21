@@ -20,8 +20,15 @@ export interface SpeechApplicationLayoutProps {
 	description: string;
 	speakerName: string;
 	speakerEmail: string;
+	speakerImageUrl: string;
 	speakerDiscordId: string;
 	onSubmit: (values: SpeechApplicationFormValues) => void;
+}
+
+interface Message {
+	authorName: string;
+	authorImageUrl: string;
+	message: string;
 }
 
 export default function SpeechApplicationLayout(props: SpeechApplicationLayoutProps) {
@@ -35,6 +42,9 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 	});
 
 	const [submittedFormValues, setSubmittedFormValues] = useState<SpeechApplicationFormValuesWithoutTime | null>(null);
+	const [discussionMessages, setDiscussionMessages] = useState<Message[]>([
+		{ authorName: "Bot", authorImageUrl: "/placeholder-user.jpg", message: "Hey everyone, how's it going?" }, 
+	]);
 
 	if (submittedFormValues) {
 		return (
@@ -73,78 +83,20 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 						</Button>
 					</header>
 					<div className="flex-1 overflow-y-auto p-4 space-y-4 h-full md:max-h-72">
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>AI</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">John Doe</div>
-								<div className="prose text-muted-foreground">
-									<p>Hey everyone, how's it going?</p>
+						{discussionMessages.map((message, index) => (
+							<div key={index} className="flex items-start gap-4">
+								<Avatar className="w-10 h-10">
+									<AvatarImage src={message.authorImageUrl} alt={message.authorName} />
+									<AvatarFallback>{message.authorName}</AvatarFallback>
+								</Avatar>
+								<div className="grid gap-1">
+									<div className="font-medium">{message.authorName}</div>
+									<div className="prose text-muted-foreground">
+										<p>{message.message}</p>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>你</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">Sarah Adams</div>
-								<div className="prose text-muted-foreground">
-									<p>Doing great, thanks for asking!</p>
-								</div>
-							</div>
-						</div>
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>MC</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">Michael Chen</div>
-								<div className="prose text-muted-foreground">
-									<p>Hey guys, I have a question about the project.</p>
-								</div>
-							</div>
-						</div>
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>EW</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">Emily Wang</div>
-								<div className="prose text-muted-foreground">
-									<p>Sure, what's up?</p>
-								</div>
-							</div>
-						</div>
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>EW</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">Emily Wang</div>
-								<div className="prose text-muted-foreground">
-									<p>Sure, what's up?</p>
-								</div>
-							</div>
-						</div>
-						<div className="flex items-start gap-4">
-							<Avatar className="w-10 h-10">
-								<AvatarImage src="/placeholder-user.jpg" alt="@shadcn" />
-								<AvatarFallback>EW</AvatarFallback>
-							</Avatar>
-							<div className="grid gap-1">
-								<div className="font-medium">Emily Wang</div>
-								<div className="prose text-muted-foreground">
-									<p>Sure, what's up?</p>
-								</div>
-							</div>
-						</div>
+						))}
 					</div>
 					<div className="bg-background border-t py-2 px-4 flex items-center gap-2 rounded-b-lg">
 						<Textarea

@@ -88,7 +88,7 @@ function renderApplicationFormLayout(props: {
 			speakerDiscordId={discordUserId}
 			speakerEmail={discordUserEmail}
 			onSubmit={async (id) => {
-				// 暫時沒有用途
+				router.push(`/applications/${id}`);
 			}}
 		/>
 	);

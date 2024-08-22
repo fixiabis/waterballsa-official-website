@@ -54,7 +54,7 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 		let finalMessage = "";
 
 		for (const messageChunk of finalMessageChunks) {
-			await new Promise((resolve) => setTimeout(resolve, 1000 / finalMessageChunks.length));
+			await new Promise((resolve) => setTimeout(resolve, 10 / finalMessageChunks.length));
 			finalMessage += messageChunk;
 			onUpdateMessage(finalMessage);
 		}

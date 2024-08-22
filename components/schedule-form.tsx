@@ -7,7 +7,6 @@ export interface ScheduleFormBookingResult {
 }
 
 export interface ScheduleFormProps {
-	calBookingId?: string;
 	speakerName: string;
 	speakerEmail: string;
 	speakerDiscordId: string;
@@ -55,7 +54,7 @@ export function ScheduleForm(props: ScheduleFormProps) {
 
 	return (
 		<Cal
-			calLink={props.calBookingId ? `booking/${props.calBookingId}` : "waterballsa.tw/水球軟體學院-上菜"}
+			calLink="waterballsa.tw/水球軟體學院-上菜"
 			style={{ width: "100%", height: "100%", overflow: "scroll" }}
 			config={{
 				layout: "month_view",

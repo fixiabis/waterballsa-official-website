@@ -1,95 +1,46 @@
 "use client";
 
-import { useSpeechApiGateway } from "@/components/api-gateway-context";
-import LoadingLayout from "@/components/loading-layout";
-import SpeechApplicationLayout from "@/components/speech-application-layout";
-import { StartApplicationForm } from "@/components/start-application-form";
-import { SpeechApiGateway } from "@/lib/api-gateways/speech-api-gateway";
-import { ApplicationInputDraft } from "@/lib/models/application";
-import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-type AppRouterInstance = ReturnType<typeof useRouter>;
-
-type ExternalAccountResource = Exclude<
-	ReturnType<typeof useUser>["user"],
-	null | undefined
->["externalAccounts"][number];
+import { LoadingLayout } from "../components/loading-layout";
+import { SpeechDiscussionLayout } from "../components/speech-discussion-layout";
+import { useSpeechSpeaker } from "../components/use-speech-speaker";
+import { ApplicationFields, Speaker } from "../lib/speech/models/speech";
+import { StartApplicationLayout } from "@/components/start-application-layout";
 
 export default function Home() {
-	const { isLoaded, user } = useUser();
+	const { isLoaded, speaker } = useSpeechSpeaker();
 	const router = useRouter();
 	const [layout, setLayout] = useState<React.ReactNode>(() => <LoadingLayout />);
-	const speechApiGateway = useSpeechApiGateway();
 
 	useEffect(() => {
-		if (isLoaded) {
-			const discordAccount = user!.externalAccounts.find((account) => account.provider === "discord")!;
-			setLayout(renderStartApplicationLayout({ changeLayout: setLayout, router, speechApiGateway, discordAccount }));
+		function renderStartApplicationLayout(speaker: Speaker) {
+			return (
+				<StartApplicationLayout
+					speaker={speaker}
+					onGeneratedApplicationFields={(applicationFields) => {
+						setLayout(renderSpeechDiscussionLayout(speaker, applicationFields));
+					}}
+				/>
+			);
 		}
-	}, [isLoaded, router, speechApiGateway, user]);
+
+		function renderSpeechDiscussionLayout(speaker: Speaker, applicationFields: ApplicationFields) {
+			return (
+				<SpeechDiscussionLayout
+					applicationFields={applicationFields}
+					userImageUrl={speaker.imageUrl}
+					onApplied={async (id) => {
+						router.push(`/applications/${id}`);
+					}}
+				/>
+			);
+		}
+
+		if (isLoaded && speaker) {
+			setLayout(renderStartApplicationLayout(speaker));
+		}
+	}, [isLoaded, router, speaker]);
 
 	return layout;
-}
-
-function renderStartApplicationLayout(props: {
-	changeLayout: (layout: React.ReactNode) => void;
-	router: AppRouterInstance;
-	speechApiGateway: SpeechApiGateway;
-	discordAccount: ExternalAccountResource;
-}) {
-	const { changeLayout, speechApiGateway, discordAccount } = props;
-	const discordUserUsername = discordAccount.username;
-	const discordUserId = discordAccount.providerUserId;
-	const discordUserImageUrl = discordAccount.imageUrl;
-
-	return (
-		<main className="h-screen flex flex-col items-center justify-center p-4">
-			<StartApplicationForm
-				userId={discordUserId || ""}
-				userUsername={discordUserUsername || ""}
-				userImageUrl={discordUserImageUrl || ""}
-				onSubmit={async (values) => {
-					changeLayout(<LoadingLayout />);
-
-					const applicationDraft = await speechApiGateway.generateApplicationInputDraft({
-						abstract: values.abstract,
-						speakerDiscordId: discordUserId,
-					});
-
-					applicationDraft.speakerName ||= discordUserUsername || "";
-
-					changeLayout(renderApplicationFormLayout({ ...props, applicationInputDraft: applicationDraft }));
-				}}
-			/>
-		</main>
-	);
-}
-
-function renderApplicationFormLayout(props: {
-	changeLayout: (layout: React.ReactNode) => void;
-	router: AppRouterInstance;
-	speechApiGateway: SpeechApiGateway;
-	discordAccount: ExternalAccountResource;
-	applicationInputDraft: ApplicationInputDraft;
-}) {
-	const { changeLayout, speechApiGateway, discordAccount, applicationInputDraft, router } = props;
-	const discordUserId = discordAccount.providerUserId;
-	const discordUserImageUrl = discordAccount.imageUrl;
-	const discordUserEmail = discordAccount.emailAddress;
-
-	return (
-		<SpeechApplicationLayout
-			applicationInput={{
-				...applicationInputDraft,
-				speakerEmail: discordUserEmail,
-				speakerDiscordId: discordUserId,
-			}}
-			userImageUrl={discordUserImageUrl}
-			onSubmit={async (id) => {
-				router.push(`/applications/${id}`);
-			}}
-		/>
-	);
 }

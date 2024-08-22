@@ -1,15 +1,16 @@
-export interface ApplicationInputDraft {
-	title: string;
-	description: string;
-	speakerName: string;
+export interface Speaker {
+	username: string;
+	email: string;
+	discordId: string;
+	imageUrl: string;
 }
 
-export interface ApplicationInput {
+export interface ApplicationFields {
 	title: string;
 	description: string;
 	speakerName: string;
-	speakerEmail: string;
 	speakerDiscordId: string;
+	speakerEmail: string;
 }
 
 export interface Application {
@@ -31,5 +32,5 @@ export const enum ApplicationReviewStatus {
 
 export interface DiscussionMessage {
 	authorName: string;
-	message: string;
+	content: string;
 }

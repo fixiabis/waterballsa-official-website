@@ -1,4 +1,4 @@
-import { ApplicationInput } from "@/lib/models/application";
+import { ApplicationFields } from "@/lib/speech/models/speech";
 import type { EventData } from "@calcom/embed-core/dist/src/sdk-action-manager";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { useEffect, useRef } from "react";
@@ -8,7 +8,7 @@ export interface ScheduleFormBookingResult {
 }
 
 export interface ScheduleFormProps {
-	applicationInput: ApplicationInput;
+	applicationFields: ApplicationFields;
 	onBookingSuccessful: (result: ScheduleFormBookingResult) => void;
 }
 
@@ -36,7 +36,6 @@ export function ScheduleForm(props: ScheduleFormProps) {
 
 			cal("ui", {
 				theme: "light",
-				// styles: { branding: { brandColor: "#1f04bc" } },
 				hideEventTypeDetails: false,
 				layout: "month_view",
 			});
@@ -55,11 +54,11 @@ export function ScheduleForm(props: ScheduleFormProps) {
 			style={{ width: "100%", height: "100%", overflow: "scroll" }}
 			config={{
 				layout: "month_view",
-				name: props.applicationInput.speakerName,
-				email: props.applicationInput.speakerEmail,
-				speakerDiscordId: props.applicationInput.speakerDiscordId,
-				title: props.applicationInput.title,
-				notes: props.applicationInput.description,
+				name: props.applicationFields.speakerName,
+				email: props.applicationFields.speakerEmail,
+				speakerDiscordId: props.applicationFields.speakerDiscordId,
+				title: props.applicationFields.title,
+				notes: props.applicationFields.description,
 			}}
 		/>
 	);

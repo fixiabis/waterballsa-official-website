@@ -1,4 +1,4 @@
-import { SpeechApiGateway } from "@/lib/api-gateways/speech-api-gateway";
+import { SpeechApiGateway } from "@/lib/speech/api-gateways/speech-api-gateway";
 import React from "react";
 
 const ApiGatewayContext = React.createContext<SpeechApiGateway | null>(null);

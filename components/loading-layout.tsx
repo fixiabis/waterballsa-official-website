@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "./loading-spinner";
 
-export default function LoadingLayout() {
+export function LoadingLayout() {
 	return (
 		<main className="h-screen flex flex-col items-center justify-center">
 			<LoadingSpinner />

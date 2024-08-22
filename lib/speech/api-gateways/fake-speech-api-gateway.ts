@@ -1,32 +1,19 @@
-import { GenerateApplicationDraftRequest, SpeechApiGateway, SubmitApplicationRequest } from "./speech-api-gateway";
-import { ApplicationInput, ApplicationReviewStatus, DiscussionMessage } from "../models/application";
+import { GenerateApplicationFieldsRequest, SpeechApiGateway } from "./speech-api-gateway";
+import { ApplicationFields, ApplicationReviewStatus, DiscussionMessage } from "../models/speech";
 
 export class FakeSpeechApiGateway implements SpeechApiGateway {
-	async generateApplicationInputDraft(request: GenerateApplicationDraftRequest) {
+	async generateApplicationFields(request: GenerateApplicationFieldsRequest) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		return {
 			title: request.abstract,
 			description: `關於${request.abstract}，我想分享一些我的經驗`,
-			speakerName: "",
+			speakerName: request.speaker.username,
+			speakerEmail: request.speaker.email,
+			speakerDiscordId: request.speaker.discordId,
 		};
 	}
 
-	async submitApplication(request: SubmitApplicationRequest) {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-		return {
-			id: "0".repeat(32),
-			title: request.title,
-			description: request.description,
-			speakerName: request.speakerName,
-			speakerDiscordId: request.speakerDiscordId,
-			eventStartTime: request.eventStartTime,
-			durationInMins: request.durationInMins,
-			applicationReviewStatus: "PENDING" as ApplicationReviewStatus,
-		};
-	}
-
-	async startDiscussionAboutSpeechDescription(draft: ApplicationInput, onUpdateMessage: (message: string) => void) {
+	async startDiscussionAboutSpeechDescription(fields: ApplicationFields, onUpdateMessage: (message: string) => void) {
 		const finalMessageChunks = "請問有什麼想要補充的嗎？".split("");
 
 		let finalMessage = "";

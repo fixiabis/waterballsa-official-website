@@ -1,4 +1,4 @@
-import { ApplicationInput, DiscussionMessage } from "@/lib/models/application";
+import { ApplicationFields, DiscussionMessage } from "@/lib/speech/models/speech";
 import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSpeechApiGateway } from "./api-gateway-context";
@@ -10,36 +10,34 @@ import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 
 export interface SpeechDiscussionLayoutProps {
-	applicationInput: ApplicationInput;
+	applicationFields: ApplicationFields;
 	userImageUrl: string;
-	onSubmit: (id: string) => void;
+	onApplied: (id: string) => void;
 }
 
 interface Message extends DiscussionMessage {
 	authorName: string;
 	authorImageUrl: string;
-	message: string;
+	content: string;
 	typing?: boolean;
 }
 
-export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutProps) {
+export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 	const [discussionId, setDiscussionId] = useState<string | null>(null);
-	const speechApiGateway = useSpeechApiGateway();
-
-	const form = useForm<ApplicationInput>({
-		defaultValues: props.applicationInput,
-	});
-
-	const [finalApplicationInput, setFinalApplicationInput] = useState<ApplicationInput | null>(null);
-	const [isDescriptionUpdated, setIsDescriptionUpdated] = useState(false);
-	const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 	const [discussionMessages, setDiscussionMessages] = useState<Message[]>([]);
-
+	const [messageContent, setMessageContent] = useState("");
+	const messageScrollAreaRef = useRef<HTMLDivElement>(null);
 	const lastDiscussionMessage = discussionMessages[discussionMessages.length - 1] || null;
 
-	const [message, setMessage] = useState("");
+	const speechApiGateway = useSpeechApiGateway();
 
-	const messageScrollAreaRef = useRef<HTMLDivElement>(null);
+	const form = useForm<ApplicationFields>({
+		defaultValues: props.applicationFields,
+	});
+
+	const [finalApplicationFields, setFinalApplicationFields] = useState<ApplicationFields | null>(null);
+	const [isDescriptionUpdated, setIsDescriptionUpdated] = useState(false);
+	const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
 	const sendMessage = async (userMessage: string) => {
 		userMessage = userMessage.trim();
@@ -50,10 +48,10 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 
 		setDiscussionMessages((messages) => [
 			...messages,
-			{ authorName: "你", authorImageUrl: props.userImageUrl, message: userMessage },
+			{ authorName: "你", authorImageUrl: props.userImageUrl, content: userMessage },
 		]);
 
-		setMessage("");
+		setMessageContent("");
 
 		const onUpdateMessage = (aiMessage: string) => {
 			setDiscussionMessages((messages) => {
@@ -63,12 +61,12 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 				if (lastMessage.authorName !== "AI") {
 					messages = [
 						...messages,
-						{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", message: aiMessage, typing: true },
+						{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", content: aiMessage, typing: true },
 					];
 				}
 
 				if (lastMessage.authorName === "AI") {
-					messages[messages.length - 1] = { ...lastMessage, message: aiMessage, typing: true };
+					messages[messages.length - 1] = { ...lastMessage, content: aiMessage, typing: true };
 				}
 
 				return messages;
@@ -115,7 +113,7 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 		}
 
 		const startDiscussionPromise = speechApiGateway.startDiscussionAboutSpeechDescription(
-			props.applicationInput,
+			props.applicationFields,
 			(aiMessage) => {
 				setDiscussionMessages((messages) => {
 					messages = [...messages];
@@ -124,10 +122,10 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 					if (lastMessage?.authorName !== "AI") {
 						messages = [
 							...messages,
-							{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", message: aiMessage, typing: true },
+							{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", content: aiMessage, typing: true },
 						];
 					} else {
-						messages[messages.length - 1] = { ...lastMessage, message: aiMessage, typing: true };
+						messages[messages.length - 1] = { ...lastMessage, content: aiMessage, typing: true };
 					}
 
 					return messages;
@@ -151,14 +149,14 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 		});
 	}, [speechApiGateway, discussionId]);
 
-	if (finalApplicationInput) {
+	if (finalApplicationFields) {
 		return (
 			<main className="h-screen pt-12 px-4 flex flex-col items-center">
 				<h1 className="text-2xl mb-8 font-bold">請選取上菜的時間</h1>
 				<ScheduleForm
-					applicationInput={finalApplicationInput}
+					applicationFields={finalApplicationFields}
 					onBookingSuccessful={(result) => {
-						props.onSubmit(result.bookingId);
+						props.onApplied(result.bookingId);
 					}}
 				/>
 			</main>
@@ -179,7 +177,7 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 					<Button
 						variant="secondary"
 						onClick={() => {
-							setFinalApplicationInput(form.getValues());
+							setFinalApplicationFields(form.getValues());
 						}}
 					>
 						跳過
@@ -192,7 +190,7 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 								setIsGeneratingDescription(true);
 								const description = await speechApiGateway.generateSpeechDescription(discussionMessages);
 								form.setValue("description", description);
-								setFinalApplicationInput(form.getValues());
+								setFinalApplicationFields(form.getValues());
 							}}
 						>
 							{isGeneratingDescription ? <LoadingSpinner /> : "生成活動文宣"}
@@ -215,13 +213,13 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 										<p>你好！目前已經研擬了一版活動文宣。</p>
 										<Card className="w-full max-w-md lg:max-w-xl p-6 grid gap-6 bg-primary text-primary-foreground">
 											<div className="grid gap-2">
-												<h2 className="text-2xl font-bold">{props.applicationInput.title}</h2>
-												<p className="text-primary-foreground">{props.applicationInput.description}</p>
+												<h2 className="text-2xl font-bold">{props.applicationFields.title}</h2>
+												<p className="text-primary-foreground">{props.applicationFields.description}</p>
 											</div>
 										</Card>
 									</React.Fragment>
 								)}
-								<p>{message.message}</p>
+								<p>{message.content}</p>
 							</div>
 						</div>
 					</div>
@@ -232,7 +230,7 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 					<Button
 						className="text-lg py-4 px-6 h-auto"
 						onClick={() => {
-							setFinalApplicationInput(form.getValues());
+							setFinalApplicationFields(form.getValues());
 						}}
 					>
 						排定活動時間
@@ -243,8 +241,8 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 					<Textarea
 						placeholder="和 AI 聊聊生成活動文宣吧！"
 						className="flex-1 resize-none rounded-md border border-input bg-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-						onChange={(event) => setMessage(event.target.value)}
-						value={message}
+						onChange={(event) => setMessageContent(event.target.value)}
+						value={messageContent}
 						onKeyDown={(event) => {
 							if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
 								return;
@@ -256,7 +254,7 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 								return;
 							}
 
-							sendMessage(message);
+							sendMessage(messageContent);
 						}}
 					/>
 					<Button
@@ -264,9 +262,9 @@ export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutPro
 						size="icon"
 						className="rounded-full"
 						onClick={() => {
-							sendMessage(message);
+							sendMessage(messageContent);
 						}}
-						disabled={!isAiResponded || !message.trim()}
+						disabled={!isAiResponded || !messageContent.trim()}
 					>
 						<SendIcon className="w-5 h-5" />
 						<span className="sr-only">Send</span>

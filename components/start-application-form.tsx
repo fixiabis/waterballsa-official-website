@@ -1,3 +1,4 @@
+import { Speaker } from "@/lib/speech/models/speech";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,9 +14,7 @@ const formSchema = z.object({
 export type StartApplicationFormValues = z.infer<typeof formSchema>;
 
 export interface StartApplicationFormProps {
-	userId: string;
-	userUsername: string;
-	userImageUrl: string;
+	speaker: Speaker;
 	onSubmit: (values: StartApplicationFormValues) => void;
 }
 
@@ -30,8 +29,8 @@ export function StartApplicationForm(props: StartApplicationFormProps) {
 	return (
 		<Card className="w-full max-w-md lg:max-w-lg relative p-4 lg:p-6 rounded-lg shadow-lg">
 			<h1 className="font-bold lg:text-2xl">
-				👋 Hi {props.userUsername}!{/* eslint-disable-next-line @next/next/no-img-element */}
-				<img className="w-8 h-8 inline-block rounded-full float-right" src={props.userImageUrl} alt="用戶頭像" />
+				👋 Hi {props.speaker.username}!{/* eslint-disable-next-line @next/next/no-img-element */}
+				<img className="w-8 h-8 inline-block rounded-full float-right" src={props.speaker.imageUrl} alt="用戶頭像" />
 			</h1>
 			<Form {...form}>
 				<form className="w-full flex items-end space-x-2" onSubmit={form.handleSubmit(props.onSubmit)}>

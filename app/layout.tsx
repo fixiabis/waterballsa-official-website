@@ -1,7 +1,7 @@
 "use client";
 
 import { ApiGatewayProvider } from "@/components/api-gateway-context";
-import { FakeSpeechApiGateway } from "@/lib/api-gateways/fake-speech-api-gateway";
+import { FakeSpeechApiGateway } from "@/lib/speech/api-gateways/fake-speech-api-gateway";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 

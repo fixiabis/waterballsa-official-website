@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ScheduleForm } from "./schedule-form";
 import {
-	SpeechApplicationForm,
 	SpeechApplicationFormValues as SpeechApplicationFormValuesWithoutTime,
 	useSpeechApplicationForm,
 } from "./speech-application-form";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Drawer, DrawerContent, DrawerDescription, DrawerOverlay, DrawerTitle } from "./ui/drawer";
 import { Textarea } from "./ui/textarea";
 import { useSpeechApiGateway } from "./api-gateway-context";
 import { Card } from "./ui/card";
+import { DiscussionMessage } from "@/lib/models/application";
+import { LoadingSpinner } from "./loading-spinner";
 
 export interface SpeechApplicationFormValues extends SpeechApplicationFormValuesWithoutTime {
 	eventStartTime: number;
@@ -24,10 +24,10 @@ export interface SpeechApplicationLayoutProps {
 	speakerEmail: string;
 	speakerImageUrl: string;
 	speakerDiscordId: string;
-	onSubmit: (values: SpeechApplicationFormValues) => void;
+	onSubmit: (id: string) => void;
 }
 
-interface Message {
+interface Message extends DiscussionMessage {
 	authorName: string;
 	authorImageUrl: string;
 	message: string;
@@ -35,7 +35,6 @@ interface Message {
 }
 
 export default function SpeechApplicationLayout(props: SpeechApplicationLayoutProps) {
-	const [isDrawerOpen, setIsDrawerOpen] = useState(true);
 	const [discussionId, setDiscussionId] = useState<string | null>(null);
 	const speechApiGateway = useSpeechApiGateway();
 
@@ -47,23 +46,21 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 	});
 
 	const [submittedFormValues, setSubmittedFormValues] = useState<SpeechApplicationFormValuesWithoutTime | null>(null);
+	const [isDescriptionUpdated, setIsDescriptionUpdated] = useState(false);
+	const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
-	const [discussionMessages, setDiscussionMessages] = useState<Message[]>([
-		{
-			authorName: "AI",
-			authorImageUrl: "/placeholder-user.jpg",
-			message: "你好！請問有什麼我可以幫助你的嗎？你想要討論關於演講的哪個方面呢？",
-		},
-	]);
+	const [discussionMessages, setDiscussionMessages] = useState<Message[]>([]);
 
-	const lastDiscussionMessage = discussionMessages[discussionMessages.length - 1];
+	const lastDiscussionMessage = discussionMessages[discussionMessages.length - 1] || null;
 
 	const [message, setMessage] = useState("");
 
 	const messageScrollAreaRef = useRef<HTMLDivElement>(null);
 
 	const sendMessage = async (userMessage: string) => {
-		if (discussionId === null || !userMessage.trim()) {
+		userMessage = userMessage.trim();
+
+		if (discussionId === null || !userMessage) {
 			return;
 		}
 
@@ -94,8 +91,11 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 			});
 		};
 
+		let hasDescriptionUpdated = false;
+
 		const onUpdateDescription = (description: string) => {
 			form.setValue("description", description);
+			hasDescriptionUpdated = true;
 		};
 
 		await speechApiGateway.sendMessageToDiscussSpeechDescription(
@@ -115,6 +115,10 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 
 			return messages;
 		});
+
+		if (hasDescriptionUpdated) {
+			setIsDescriptionUpdated(true);
+		}
 	};
 
 	useEffect(() => {
@@ -122,14 +126,46 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 	}, [discussionMessages]);
 
 	useEffect(() => {
-		if (!isDrawerOpen || discussionId !== null) {
+		if (discussionId !== null) {
 			return;
 		}
 
-		speechApiGateway.startDiscussionAboutSpeechDescription().then((discussionId) => {
+		const startDiscussionPromise = speechApiGateway.startDiscussionAboutSpeechDescription(
+			{ title: props.title, description: props.description, speakerName: props.speakerName },
+			(aiMessage) => {
+				setDiscussionMessages((messages) => {
+					messages = [...messages];
+					const lastMessage = messages[messages.length - 1];
+
+					if (lastMessage?.authorName !== "AI") {
+						messages = [
+							...messages,
+							{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", message: aiMessage, typing: true },
+						];
+					} else {
+						messages[messages.length - 1] = { ...lastMessage, message: aiMessage, typing: true };
+					}
+
+					return messages;
+				});
+			}
+		);
+
+		startDiscussionPromise.then((discussionId) => {
 			setDiscussionId(discussionId);
+
+			setDiscussionMessages((messages) => {
+				messages = [...messages];
+				const lastMessage = messages[messages.length - 1];
+
+				if (lastMessage?.authorName === "AI") {
+					messages[messages.length - 1] = { ...lastMessage, typing: false };
+				}
+
+				return messages;
+			});
 		});
-	}, [speechApiGateway, isDrawerOpen, discussionId]);
+	}, [speechApiGateway, discussionId]);
 
 	if (submittedFormValues) {
 		return (
@@ -138,8 +174,11 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 				<ScheduleForm
 					speakerName={submittedFormValues.speakerName}
 					speakerEmail={props.speakerEmail}
+					speakerDiscordId={props.speakerDiscordId}
+					title={props.title}
+					description={props.description}
 					onBookingSuccessful={(result) => {
-						props.onSubmit({ ...submittedFormValues, ...result });
+						props.onSubmit(result.bookingId);
 					}}
 				/>
 			</main>
@@ -147,95 +186,113 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 	}
 
 	const isAiResponded =
-		discussionId !== null && lastDiscussionMessage.authorName === "AI" && !lastDiscussionMessage.typing;
+		discussionId !== null &&
+		lastDiscussionMessage !== null &&
+		lastDiscussionMessage.authorName === "AI" &&
+		!lastDiscussionMessage.typing;
 
 	return (
-		<main className="h-screen pt-12 px-4 flex flex-col items-center">
-			<h1 className="text-2xl mb-8 font-bold">上菜申請</h1>
-			<SpeechApplicationForm
-				form={form}
-				onSubmit={form.handleSubmit((values: SpeechApplicationFormValuesWithoutTime) => {
-					setSubmittedFormValues(values);
-				})}
-				onDiscussDescription={() => setIsDrawerOpen(true)}
-			/>
-			<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-				<DrawerTitle className="invisible">聊聊你的上菜內容吧</DrawerTitle>
-				<DrawerDescription></DrawerDescription>
-				<DrawerContent className="bg-muted border-none shadow-lg h-screen _md:h-auto rounded-lg w-full _md:w-96 left-auto">
-					<header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between shadow-sm">
-						<div className="font-medium text-lg">聊聊你的上菜內容吧</div>
-						<Button variant="ghost" onClick={() => setIsDrawerOpen(false)}>
-							生成活動文宣
-							{/* <XIcon className="w-5 h-5" />
-							<span className="sr-only">關閉</span> */}
-						</Button>
-					</header>
-					<div
-						className="flex-1 overflow-y-auto p-4 space-y-4 h-full _md:min-h-80 _md:max-h-80"
-						ref={messageScrollAreaRef}
+		<main className="flex flex-col bg-muted border-none shadow-lg h-screen _md:h-auto rounded-lg w-full _md:w-96 left-auto">
+			<header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between shadow-sm">
+				<div className="font-medium text-lg">聊聊你的上菜內容吧</div>
+				{discussionMessages.length <= 1 ? (
+					<Button
+						variant="secondary"
+						onClick={() => {
+							setSubmittedFormValues(form.getValues());
+						}}
 					>
-						{/* 顯示目前產生的活動 */}
-						{discussionMessages.map((message, index) => (
-							<div key={index} className="flex items-start gap-4">
-								<Avatar className="w-10 h-10">
-									<AvatarImage src={message.authorImageUrl} alt={message.authorName} />
-									<AvatarFallback>{message.authorName}</AvatarFallback>
-								</Avatar>
-								<div className="grid gap-1">
-									<div className="font-medium">{message.authorName}</div>
-									<div className="prose text-muted-foreground">
-										<p>{message.message}</p>
-										{index === 0 && (
-											<p className="py-2">
-												<Card className="w-full max-w-md lg:max-w-xl p-6 grid gap-6 bg-primary text-primary-foreground">
-													<div className="grid gap-2">
-														<h2 className="text-2xl font-bold">{props.title}</h2>
-														<p className="text-primary-foreground">{props.description}</p>
-													</div>
-												</Card>
-											</p>
-										)}
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
-					<div className="bg-background border-t py-2 px-4 flex items-center gap-2 rounded-b-lg">
-						<Textarea
-							placeholder="Type your message..."
-							className="flex-1 resize-none rounded-md border border-input bg-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-							onChange={(event) => setMessage(event.target.value)}
-							value={message}
-							onKeyDown={(event) => {
-								if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
-									return;
-								}
-
-								event.preventDefault();
-
-								if (!isAiResponded) {
-									return;
-								}
-
-								sendMessage(message);
-							}}
-						/>
+						跳過
+					</Button>
+				) : (
+					!isDescriptionUpdated && (
 						<Button
-							type="button"
-							size="icon"
-							className="rounded-full"
-							onClick={() => {
-								sendMessage(message);
+							variant="secondary"
+							onClick={async () => {
+								setIsGeneratingDescription(true);
+								const description = await speechApiGateway.generateSpeechDescription(discussionMessages);
+								form.setValue("description", description);
+								setSubmittedFormValues(form.getValues());
 							}}
-							disabled={!isAiResponded || !message.trim()}
 						>
-							<SendIcon className="w-5 h-5" />
-							<span className="sr-only">Send</span>
+							{isGeneratingDescription ? <LoadingSpinner /> : "生成活動文宣"}
 						</Button>
+					)
+				)}
+			</header>
+			<div className="flex-1 overflow-y-auto p-4 space-y-4 h-full _md:min-h-80 _md:max-h-80" ref={messageScrollAreaRef}>
+				{discussionMessages.map((message, index) => (
+					<div key={index} className="flex items-start gap-4">
+						<Avatar className="w-10 h-10">
+							<AvatarImage src={message.authorImageUrl} alt={message.authorName} />
+							<AvatarFallback>{message.authorName}</AvatarFallback>
+						</Avatar>
+						<div className="grid gap-1">
+							<div className="font-medium">{message.authorName}</div>
+							<div className="prose text-muted-foreground space-y-2">
+								{index === 0 && (
+									<React.Fragment>
+										<p>你好！目前已經研擬了一版活動文宣。</p>
+										<Card className="w-full max-w-md lg:max-w-xl p-6 grid gap-6 bg-primary text-primary-foreground">
+											<div className="grid gap-2">
+												<h2 className="text-2xl font-bold">{props.title}</h2>
+												<p className="text-primary-foreground">{props.description}</p>
+											</div>
+										</Card>
+									</React.Fragment>
+								)}
+								<p>{message.message}</p>
+							</div>
+						</div>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				))}
+			</div>
+			{isDescriptionUpdated ? (
+				<div className="bg-background border-t py-4 px-4 flex items-center justify-center gap-2 rounded-b-lg">
+					<Button
+						className="text-lg py-4 px-6 h-auto"
+						onClick={() => {
+							setSubmittedFormValues(form.getValues());
+						}}
+					>
+						排定活動時間
+					</Button>
+				</div>
+			) : (
+				<div className="bg-background border-t py-2 px-4 flex items-center gap-2 rounded-b-lg">
+					<Textarea
+						placeholder="和 AI 聊聊生成活動文宣吧！"
+						className="flex-1 resize-none rounded-md border border-input bg-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						onChange={(event) => setMessage(event.target.value)}
+						value={message}
+						onKeyDown={(event) => {
+							if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+								return;
+							}
+
+							event.preventDefault();
+
+							if (!isAiResponded) {
+								return;
+							}
+
+							sendMessage(message);
+						}}
+					/>
+					<Button
+						type="button"
+						size="icon"
+						className="rounded-full"
+						onClick={() => {
+							sendMessage(message);
+						}}
+						disabled={!isAiResponded || !message.trim()}
+					>
+						<SendIcon className="w-5 h-5" />
+						<span className="sr-only">Send</span>
+					</Button>
+				</div>
+			)}
 		</main>
 	);
 }
@@ -256,26 +313,6 @@ function SendIcon(props: React.SVGProps<SVGSVGElement>) {
 		>
 			<path d="m22 2-7 20-4-9-9-4Z" />
 			<path d="M22 2 11 13" />
-		</svg>
-	);
-}
-
-function XIcon(props: React.SVGProps<SVGSVGElement>) {
-	return (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			{...props}
-		>
-			<path d="M18 6 6 18" />
-			<path d="m6 6 12 12" />
 		</svg>
 	);
 }

@@ -20,3 +20,8 @@ export const enum ApplicationReviewStatus {
 	PASSED = "PASSED",
 	DENIED = "DENIED",
 }
+
+export interface DiscussionMessage {
+	authorName: string;
+	message: string;
+}

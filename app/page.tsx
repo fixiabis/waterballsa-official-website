@@ -58,6 +58,8 @@ export function renderStartApplicationLayout(props: {
 						speakerDiscordId: discordUserId,
 					});
 
+					applicationDraft.speakerName ||= discordUserUsername || "";
+
 					changeLayout(renderApplicationFormLayout({ ...props, applicationDraft }));
 				}}
 			/>
@@ -85,19 +87,8 @@ export function renderApplicationFormLayout(props: {
 			speakerImageUrl={discordUserImageUrl}
 			speakerDiscordId={discordUserId}
 			speakerEmail={discordUserEmail}
-			onSubmit={async (values) => {
-				changeLayout(<LoadingLayout />);
-
-				const data = await speechApiGateway.submitApplication({
-					title: values.title,
-					description: values.description,
-					speakerName: applicationDraft.speakerName,
-					speakerDiscordId: discordUserId,
-					eventStartTime: new Date().getTime(),
-					durationInMins: 30,
-				});
-
-				router.push(`/applications/${data.id}`);
+			onSubmit={async (id) => {
+				// 暫時沒有用途
 			}}
 		/>
 	);

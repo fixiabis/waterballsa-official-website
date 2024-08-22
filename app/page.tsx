@@ -33,7 +33,7 @@ export default function Home() {
 	return layout;
 }
 
-export function renderStartApplicationLayout(props: {
+function renderStartApplicationLayout(props: {
 	changeLayout: (layout: React.ReactNode) => void;
 	router: AppRouterInstance;
 	speechApiGateway: SpeechApiGateway;
@@ -67,7 +67,7 @@ export function renderStartApplicationLayout(props: {
 	);
 }
 
-export function renderApplicationFormLayout(props: {
+function renderApplicationFormLayout(props: {
 	changeLayout: (layout: React.ReactNode) => void;
 	router: AppRouterInstance;
 	speechApiGateway: SpeechApiGateway;

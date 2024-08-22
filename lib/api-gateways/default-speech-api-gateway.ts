@@ -1,5 +1,5 @@
 import { GenerateApplicationDraftRequest, SpeechApiGateway, SubmitApplicationRequest } from "./speech-api-gateway";
-import { Application } from "../models/application";
+import { Application, DiscussionMessage } from "../models/application";
 
 export class DefaultSpeechApiGateway implements SpeechApiGateway {
 	private readonly baseUrl: string;
@@ -66,6 +66,10 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 		onUpdateMessage: (message: string) => void,
 		onUpdateDescription: (description: string) => void
 	): Promise<void> {
+		throw new Error("Method not implemented.");
+	}
+
+	generateSpeechDescription(messages: DiscussionMessage[]): Promise<string> {
 		throw new Error("Method not implemented.");
 	}
 

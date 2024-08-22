@@ -23,7 +23,7 @@ export default function ApplicationPage(props: ApplicationPageProps) {
 	return layout;
 }
 
-export function renderApplicationLayout({
+function renderApplicationLayout({
 	changeLayout,
 	application,
 }: {
@@ -41,7 +41,7 @@ export function renderApplicationLayout({
 	);
 }
 
-export function renderCancelApplicationLayout({
+function renderCancelApplicationLayout({
 	changeLayout,
 	application,
 }: {

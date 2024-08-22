@@ -5,7 +5,7 @@ import LoadingLayout from "@/components/loading-layout";
 import SpeechApplicationLayout from "@/components/speech-application-layout";
 import { StartApplicationForm } from "@/components/start-application-form";
 import { SpeechApiGateway } from "@/lib/api-gateways/speech-api-gateway";
-import { ApplicationDraft } from "@/lib/models/application";
+import { ApplicationInputDraft } from "@/lib/models/application";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -53,14 +53,14 @@ function renderStartApplicationLayout(props: {
 				onSubmit={async (values) => {
 					changeLayout(<LoadingLayout />);
 
-					const applicationDraft = await speechApiGateway.generateApplicationDraft({
+					const applicationDraft = await speechApiGateway.generateApplicationInputDraft({
 						abstract: values.abstract,
 						speakerDiscordId: discordUserId,
 					});
 
 					applicationDraft.speakerName ||= discordUserUsername || "";
 
-					changeLayout(renderApplicationFormLayout({ ...props, applicationDraft }));
+					changeLayout(renderApplicationFormLayout({ ...props, applicationInputDraft: applicationDraft }));
 				}}
 			/>
 		</main>
@@ -72,21 +72,21 @@ function renderApplicationFormLayout(props: {
 	router: AppRouterInstance;
 	speechApiGateway: SpeechApiGateway;
 	discordAccount: ExternalAccountResource;
-	applicationDraft: ApplicationDraft;
+	applicationInputDraft: ApplicationInputDraft;
 }) {
-	const { changeLayout, speechApiGateway, discordAccount, applicationDraft, router } = props;
+	const { changeLayout, speechApiGateway, discordAccount, applicationInputDraft, router } = props;
 	const discordUserId = discordAccount.providerUserId;
 	const discordUserImageUrl = discordAccount.imageUrl;
 	const discordUserEmail = discordAccount.emailAddress;
 
 	return (
 		<SpeechApplicationLayout
-			title={applicationDraft.title}
-			description={applicationDraft.description}
-			speakerName={applicationDraft.speakerName}
-			speakerImageUrl={discordUserImageUrl}
-			speakerDiscordId={discordUserId}
-			speakerEmail={discordUserEmail}
+			applicationInput={{
+				...applicationInputDraft,
+				speakerEmail: discordUserEmail,
+				speakerDiscordId: discordUserId,
+			}}
+			userImageUrl={discordUserImageUrl}
 			onSubmit={async (id) => {
 				router.push(`/applications/${id}`);
 			}}

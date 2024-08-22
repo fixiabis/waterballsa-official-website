@@ -1,8 +1,8 @@
 import { GenerateApplicationDraftRequest, SpeechApiGateway, SubmitApplicationRequest } from "./speech-api-gateway";
-import { ApplicationDraft, ApplicationReviewStatus, DiscussionMessage } from "../models/application";
+import { ApplicationInput, ApplicationReviewStatus, DiscussionMessage } from "../models/application";
 
 export class FakeSpeechApiGateway implements SpeechApiGateway {
-	async generateApplicationDraft(request: GenerateApplicationDraftRequest) {
+	async generateApplicationInputDraft(request: GenerateApplicationDraftRequest) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		return {
 			title: request.abstract,
@@ -26,7 +26,7 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 		};
 	}
 
-	async startDiscussionAboutSpeechDescription(draft: ApplicationDraft, onUpdateMessage: (message: string) => void) {
+	async startDiscussionAboutSpeechDescription(draft: ApplicationInput, onUpdateMessage: (message: string) => void) {
 		const finalMessageChunks = "請問有什麼想要補充的嗎？".split("");
 
 		let finalMessage = "";

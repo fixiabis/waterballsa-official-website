@@ -8,7 +8,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 		this.baseUrl = baseUrl;
 	}
 
-	public async generateApplicationDraft(request: GenerateApplicationDraftRequest) {
+	public async generateApplicationInputDraft(request: GenerateApplicationDraftRequest) {
 		const query = new URLSearchParams({
 			abstract: request.abstract,
 			speaker_discord_id: request.speakerDiscordId,

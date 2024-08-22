@@ -1,10 +1,10 @@
-import { Application, ApplicationDraft, DiscussionMessage } from "../models/application";
+import { Application, ApplicationInput, ApplicationInputDraft, DiscussionMessage } from "../models/application";
 
 export interface SpeechApiGateway {
-	generateApplicationDraft(request: GenerateApplicationDraftRequest): Promise<ApplicationDraft>;
+	generateApplicationInputDraft(request: GenerateApplicationDraftRequest): Promise<ApplicationInputDraft>;
 
 	startDiscussionAboutSpeechDescription(
-		draft: ApplicationDraft,
+		draft: ApplicationInput,
 		onUpdateMessage: (message: string) => void
 	): Promise<DiscussionId>;
 

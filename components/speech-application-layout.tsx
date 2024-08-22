@@ -1,29 +1,17 @@
+import { ApplicationInput, DiscussionMessage } from "@/lib/models/application";
 import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useSpeechApiGateway } from "./api-gateway-context";
+import { LoadingSpinner } from "./loading-spinner";
 import { ScheduleForm } from "./schedule-form";
-import {
-	SpeechApplicationFormValues as SpeechApplicationFormValuesWithoutTime,
-	useSpeechApplicationForm,
-} from "./speech-application-form";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import { useSpeechApiGateway } from "./api-gateway-context";
 import { Card } from "./ui/card";
-import { DiscussionMessage } from "@/lib/models/application";
-import { LoadingSpinner } from "./loading-spinner";
+import { Textarea } from "./ui/textarea";
 
-export interface SpeechApplicationFormValues extends SpeechApplicationFormValuesWithoutTime {
-	eventStartTime: number;
-	durationInMins: number;
-}
-
-export interface SpeechApplicationLayoutProps {
-	title: string;
-	description: string;
-	speakerName: string;
-	speakerEmail: string;
-	speakerImageUrl: string;
-	speakerDiscordId: string;
+export interface SpeechDiscussionLayoutProps {
+	applicationInput: ApplicationInput;
+	userImageUrl: string;
 	onSubmit: (id: string) => void;
 }
 
@@ -34,21 +22,17 @@ interface Message extends DiscussionMessage {
 	typing?: boolean;
 }
 
-export default function SpeechApplicationLayout(props: SpeechApplicationLayoutProps) {
+export default function SpeechApplicationLayout(props: SpeechDiscussionLayoutProps) {
 	const [discussionId, setDiscussionId] = useState<string | null>(null);
 	const speechApiGateway = useSpeechApiGateway();
 
-	const form = useSpeechApplicationForm({
-		speakerName: props.speakerName,
-		speakerDiscordId: props.speakerDiscordId,
-		title: props.title,
-		description: props.description,
+	const form = useForm<ApplicationInput>({
+		defaultValues: props.applicationInput,
 	});
 
-	const [submittedFormValues, setSubmittedFormValues] = useState<SpeechApplicationFormValuesWithoutTime | null>(null);
+	const [finalApplicationInput, setFinalApplicationInput] = useState<ApplicationInput | null>(null);
 	const [isDescriptionUpdated, setIsDescriptionUpdated] = useState(false);
 	const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
-
 	const [discussionMessages, setDiscussionMessages] = useState<Message[]>([]);
 
 	const lastDiscussionMessage = discussionMessages[discussionMessages.length - 1] || null;
@@ -66,7 +50,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 
 		setDiscussionMessages((messages) => [
 			...messages,
-			{ authorName: "你", authorImageUrl: props.speakerImageUrl, message: userMessage },
+			{ authorName: "你", authorImageUrl: props.userImageUrl, message: userMessage },
 		]);
 
 		setMessage("");
@@ -131,7 +115,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 		}
 
 		const startDiscussionPromise = speechApiGateway.startDiscussionAboutSpeechDescription(
-			{ title: props.title, description: props.description, speakerName: props.speakerName },
+			props.applicationInput,
 			(aiMessage) => {
 				setDiscussionMessages((messages) => {
 					messages = [...messages];
@@ -167,16 +151,12 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 		});
 	}, [speechApiGateway, discussionId]);
 
-	if (submittedFormValues) {
+	if (finalApplicationInput) {
 		return (
 			<main className="h-screen pt-12 px-4 flex flex-col items-center">
 				<h1 className="text-2xl mb-8 font-bold">請選取上菜的時間</h1>
 				<ScheduleForm
-					speakerName={submittedFormValues.speakerName}
-					speakerEmail={props.speakerEmail}
-					speakerDiscordId={props.speakerDiscordId}
-					title={props.title}
-					description={props.description}
+					applicationInput={finalApplicationInput}
 					onBookingSuccessful={(result) => {
 						props.onSubmit(result.bookingId);
 					}}
@@ -199,7 +179,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 					<Button
 						variant="secondary"
 						onClick={() => {
-							setSubmittedFormValues(form.getValues());
+							setFinalApplicationInput(form.getValues());
 						}}
 					>
 						跳過
@@ -212,7 +192,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 								setIsGeneratingDescription(true);
 								const description = await speechApiGateway.generateSpeechDescription(discussionMessages);
 								form.setValue("description", description);
-								setSubmittedFormValues(form.getValues());
+								setFinalApplicationInput(form.getValues());
 							}}
 						>
 							{isGeneratingDescription ? <LoadingSpinner /> : "生成活動文宣"}
@@ -235,8 +215,8 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 										<p>你好！目前已經研擬了一版活動文宣。</p>
 										<Card className="w-full max-w-md lg:max-w-xl p-6 grid gap-6 bg-primary text-primary-foreground">
 											<div className="grid gap-2">
-												<h2 className="text-2xl font-bold">{props.title}</h2>
-												<p className="text-primary-foreground">{props.description}</p>
+												<h2 className="text-2xl font-bold">{props.applicationInput.title}</h2>
+												<p className="text-primary-foreground">{props.applicationInput.description}</p>
 											</div>
 										</Card>
 									</React.Fragment>
@@ -252,7 +232,7 @@ export default function SpeechApplicationLayout(props: SpeechApplicationLayoutPr
 					<Button
 						className="text-lg py-4 px-6 h-auto"
 						onClick={() => {
-							setSubmittedFormValues(form.getValues());
+							setFinalApplicationInput(form.getValues());
 						}}
 					>
 						排定活動時間

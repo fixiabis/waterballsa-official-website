@@ -1,7 +1,15 @@
-export interface ApplicationDraft {
+export interface ApplicationInputDraft {
 	title: string;
 	description: string;
 	speakerName: string;
+}
+
+export interface ApplicationInput {
+	title: string;
+	description: string;
+	speakerName: string;
+	speakerEmail: string;
+	speakerDiscordId: string;
 }
 
 export interface Application {

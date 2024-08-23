@@ -56,6 +56,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 			eventStartTime: responseData["event_start_time"] * 1000,
 			durationInMins: responseData["duration_in_mins"],
 			applicationReviewStatus: responseData["application_review_status"],
+			canceled: false,
 		};
 	}
 }

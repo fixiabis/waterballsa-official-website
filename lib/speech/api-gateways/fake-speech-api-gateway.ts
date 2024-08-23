@@ -68,6 +68,7 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 			eventStartTime: new Date().getTime(),
 			durationInMins: 30,
 			applicationReviewStatus: "PENDING" as ApplicationReviewStatus,
+			canceled: false,
 		};
 	}
 }

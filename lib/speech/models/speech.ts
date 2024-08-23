@@ -22,6 +22,7 @@ export interface Application {
 	eventStartTime: number;
 	durationInMins: number;
 	applicationReviewStatus: ApplicationReviewStatus;
+	canceled: boolean;
 }
 
 export const enum ApplicationReviewStatus {

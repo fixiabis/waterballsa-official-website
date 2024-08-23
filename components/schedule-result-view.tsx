@@ -24,7 +24,7 @@ export function ScheduleResultView(props: ScheduleResultViewProps) {
 		<Cal
 			calLink={`booking/${props.bookingId}`}
 			style={{ width: "100%", height: "100%", overflow: "scroll" }}
-			config={{ layout: "month_view" }}
+			config={{ layout: "month_view", cancel: "true" }}
 		/>
 	);
 }

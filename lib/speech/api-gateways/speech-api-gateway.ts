@@ -5,7 +5,8 @@ export interface SpeechApiGateway {
 
 	startDiscussionAboutSpeechDescription(
 		applicationFields: ApplicationFields,
-		onUpdateMessage: (message: string) => void
+		onUpdateMessage: (message: string) => void,
+		onUpdateDescription: (description: string) => void
 	): Promise<DiscussionId>;
 
 	sendMessageToDiscussSpeechDescription(
@@ -15,7 +16,7 @@ export interface SpeechApiGateway {
 		onUpdateDescription: (description: string) => void
 	): Promise<void>;
 
-	generateSpeechDescription(messages: DiscussionMessage[]): Promise<string>;
+	generateSpeechDescription(request: GenerateSpeechDescriptionRequest): Promise<string>;
 
 	getApplication(id: string): Promise<Application>;
 }
@@ -24,5 +25,10 @@ export type DiscussionId = string;
 
 export interface GenerateApplicationFieldsRequest {
 	abstract: string;
+	speaker: Speaker;
+}
+
+export interface GenerateSpeechDescriptionRequest {
+	discussionMessages: DiscussionMessage[];
 	speaker: Speaker;
 }

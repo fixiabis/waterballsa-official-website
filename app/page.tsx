@@ -29,7 +29,7 @@ export default function Home() {
 			return (
 				<SpeechDiscussionLayout
 					applicationFields={applicationFields}
-					userImageUrl={speaker.imageUrl}
+					speaker={speaker}
 					onApplied={async (id) => {
 						router.push(`/applications/${id}`);
 					}}

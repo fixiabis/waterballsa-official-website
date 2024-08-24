@@ -1,5 +1,5 @@
-import { ApplicationFields, DiscussionMessage } from "@/lib/speech/models/speech";
-import React, { useEffect, useRef, useState } from "react";
+import { ApplicationFields, DiscussionMessage, Speaker } from "@/lib/speech/models/speech";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSpeechApiGateway } from "./api-gateway-context";
 import { LoadingSpinner } from "./loading-spinner";
@@ -11,7 +11,7 @@ import { Textarea } from "./ui/textarea";
 
 export interface SpeechDiscussionLayoutProps {
 	applicationFields: ApplicationFields;
-	userImageUrl: string;
+	speaker: Speaker;
 	onApplied: (id: string) => void;
 }
 
@@ -39,54 +39,29 @@ export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 	const [isDescriptionUpdated, setIsDescriptionUpdated] = useState(false);
 	const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
-	const sendMessage = async (userMessage: string) => {
-		userMessage = userMessage.trim();
+	const updateLastAiDiscussionMessage = useCallback((aiMessage: string) => {
+		setDiscussionMessages(([...messages]) => {
+			const lastMessage = messages[messages.length - 1];
 
-		if (discussionId === null || !userMessage) {
-			return;
-		}
+			if (lastMessage?.authorName !== "AI") {
+				messages = [
+					...messages,
+					{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", content: aiMessage, typing: true },
+				];
+			} else if (lastMessage.authorName === "AI") {
+				messages[messages.length - 1] = { ...lastMessage, content: aiMessage, typing: true };
+			}
 
-		setDiscussionMessages((messages) => [
-			...messages,
-			{ authorName: "你", authorImageUrl: props.userImageUrl, content: userMessage },
-		]);
+			return messages;
+		});
+	}, []);
 
-		setMessageContent("");
+	const updateDescription = useCallback(async (description: string) => {
+		form.setValue("description", description);
+		setIsDescriptionUpdated(true);
+	}, []);
 
-		const onUpdateMessage = (aiMessage: string) => {
-			setDiscussionMessages((messages) => {
-				messages = [...messages];
-				const lastMessage = messages[messages.length - 1];
-
-				if (lastMessage.authorName !== "AI") {
-					messages = [
-						...messages,
-						{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", content: aiMessage, typing: true },
-					];
-				}
-
-				if (lastMessage.authorName === "AI") {
-					messages[messages.length - 1] = { ...lastMessage, content: aiMessage, typing: true };
-				}
-
-				return messages;
-			});
-		};
-
-		let hasDescriptionUpdated = false;
-
-		const onUpdateDescription = (description: string) => {
-			form.setValue("description", description);
-			hasDescriptionUpdated = true;
-		};
-
-		await speechApiGateway.sendMessageToDiscussSpeechDescription(
-			discussionId,
-			userMessage,
-			onUpdateMessage,
-			onUpdateDescription
-		);
-
+	const endAiTyping = useCallback(() => {
 		setDiscussionMessages((messages) => {
 			messages = [...messages];
 			const lastMessage = messages[messages.length - 1];
@@ -97,10 +72,30 @@ export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 
 			return messages;
 		});
+	}, []);
 
-		if (hasDescriptionUpdated) {
-			setIsDescriptionUpdated(true);
+	const sendMessage = async (userMessage: string) => {
+		userMessage = userMessage.trim();
+
+		if (discussionId === null || !userMessage) {
+			return;
 		}
+
+		setDiscussionMessages((messages) => [
+			...messages,
+			{ authorName: "你", authorImageUrl: props.speaker.imageUrl, content: userMessage },
+		]);
+
+		setMessageContent("");
+
+		await speechApiGateway.sendMessageToDiscussSpeechDescription(
+			discussionId,
+			userMessage,
+			updateLastAiDiscussionMessage,
+			updateDescription
+		);
+
+		endAiTyping();
 	};
 
 	useEffect(() => {
@@ -108,46 +103,17 @@ export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 	}, [discussionMessages]);
 
 	useEffect(() => {
-		if (discussionId !== null) {
-			return;
-		}
-
 		const startDiscussionPromise = speechApiGateway.startDiscussionAboutSpeechDescription(
 			props.applicationFields,
-			(aiMessage) => {
-				setDiscussionMessages((messages) => {
-					messages = [...messages];
-					const lastMessage = messages[messages.length - 1];
-
-					if (lastMessage?.authorName !== "AI") {
-						messages = [
-							...messages,
-							{ authorName: "AI", authorImageUrl: "/placeholder-user.jpg", content: aiMessage, typing: true },
-						];
-					} else {
-						messages[messages.length - 1] = { ...lastMessage, content: aiMessage, typing: true };
-					}
-
-					return messages;
-				});
-			}
+			updateLastAiDiscussionMessage,
+			updateDescription
 		);
 
 		startDiscussionPromise.then((discussionId) => {
 			setDiscussionId(discussionId);
-
-			setDiscussionMessages((messages) => {
-				messages = [...messages];
-				const lastMessage = messages[messages.length - 1];
-
-				if (lastMessage?.authorName === "AI") {
-					messages[messages.length - 1] = { ...lastMessage, typing: false };
-				}
-
-				return messages;
-			});
+			endAiTyping();
 		});
-	}, [speechApiGateway, discussionId]);
+	}, [speechApiGateway]);
 
 	if (finalApplicationFields) {
 		return (
@@ -188,7 +154,10 @@ export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 							variant="secondary"
 							onClick={async () => {
 								setIsGeneratingDescription(true);
-								const description = await speechApiGateway.generateSpeechDescription(discussionMessages);
+								const description = await speechApiGateway.generateSpeechDescription({
+									discussionMessages,
+									speaker: props.speaker,
+								});
 								form.setValue("description", description);
 								setFinalApplicationFields(form.getValues());
 							}}

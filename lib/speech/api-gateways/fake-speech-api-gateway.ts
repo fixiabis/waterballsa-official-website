@@ -1,4 +1,4 @@
-import { GenerateApplicationFieldsRequest, SpeechApiGateway } from "./speech-api-gateway";
+import { GenerateApplicationFieldsRequest, GenerateSpeechDescriptionRequest, SpeechApiGateway } from "./speech-api-gateway";
 import { ApplicationFields, ApplicationReviewStatus, DiscussionMessage } from "../models/speech";
 
 export class FakeSpeechApiGateway implements SpeechApiGateway {
@@ -51,8 +51,8 @@ export class FakeSpeechApiGateway implements SpeechApiGateway {
 		}
 	}
 
-	async generateSpeechDescription(messages: DiscussionMessage[]): Promise<string> {
-		await new Promise((resolve) => setTimeout(resolve, messages.length * 100));
+	async generateSpeechDescription(request: GenerateSpeechDescriptionRequest): Promise<string> {
+		await new Promise((resolve) => setTimeout(resolve, request.discussionMessages.length * 100));
 		return "這是生成的描述";
 	}
 

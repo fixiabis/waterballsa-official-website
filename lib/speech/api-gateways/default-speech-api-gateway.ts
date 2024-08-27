@@ -56,7 +56,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 		onUpdateDescription: (description: string) => void
 	): Promise<void> {
 		let finalMessage = "";
-		let isDescriptionUpdated = false;
+		let finalDescription = "";
 
 		await fetchEventSource(`${this.baseUrl}/speeching/stream_log`, {
 			method: "POST",
@@ -88,22 +88,30 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 				const ops = data["ops"] as any[];
 
 				for (const op of ops) {
-					if (op["op"] === "add" && op["path"] === "/logs/ChatOpenAI/streamed_output_str/-") {
-						const message = op["value"];
+					// HACK: 透過 log 寫入的路徑取得訊息片段來優先顯示訊息文字
+					if (op["op"] === "add" && op["path"] === "/logs/ChatOpenAI/streamed_output/-") {
+						const message = op["value"]["content"];
+						// HACK: 如果在產生文宣的階段時，invalid_tool_calls 的長度不會是 0，藉此判斷是否正在準備文宣
+						const isPreparingDescription =
+							op["value"]["content"] === "" && op["value"]["invalid_tool_calls"].length > 0;
+
 						finalMessage += message;
 						onUpdateMessage(finalMessage);
+
+						if (isPreparingDescription) {
+							onUpdateMessage("正在準備活動文宣，請稍候...");
+						}
 					}
 
+					// HACK: 透過 log 寫入的路徑取得最後產生的文宣內容
 					if (op["op"] === "add" && op["path"] === "/logs/draft_answer/final_output") {
-						const description = op["value"]["messages"][0]["content"];
-						onUpdateDescription(description);
-						isDescriptionUpdated = true;
+						finalDescription = op["value"]["messages"][0]["content"];
 					}
 				}
 			},
 		});
 
-		if (isDescriptionUpdated) {
+		if (finalDescription !== "") {
 			const finalMessageChunks = "感謝你的分享！已更新了一版活動文宣，在排定活動時間後可以再修改標題和描述喔！";
 
 			for (const messageChunk of finalMessageChunks) {
@@ -111,6 +119,8 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 				finalMessage += messageChunk;
 				onUpdateMessage(finalMessage);
 			}
+
+			onUpdateDescription(finalDescription);
 		}
 	}
 

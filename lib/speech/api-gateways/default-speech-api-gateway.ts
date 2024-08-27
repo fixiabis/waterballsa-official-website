@@ -57,6 +57,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 	): Promise<void> {
 		let finalMessage = "";
 		let finalDescription = "";
+		let isPreparingDescription = false;
 
 		await fetchEventSource(`${this.baseUrl}/speeching/stream_log`, {
 			method: "POST",
@@ -92,8 +93,7 @@ export class DefaultSpeechApiGateway implements SpeechApiGateway {
 					if (op["op"] === "add" && op["path"] === "/logs/ChatOpenAI/streamed_output/-") {
 						const message = op["value"]["content"];
 						// HACK: 如果在產生文宣的階段時，invalid_tool_calls 的長度不會是 0，藉此判斷是否正在準備文宣
-						const isPreparingDescription =
-							op["value"]["content"] === "" && op["value"]["invalid_tool_calls"].length > 0;
+						isPreparingDescription ||= op["value"]["content"] === "" && op["value"]["invalid_tool_calls"].length > 0;
 
 						finalMessage += message;
 						onUpdateMessage(finalMessage);

@@ -117,8 +117,8 @@ export function SpeechDiscussionLayout(props: SpeechDiscussionLayoutProps) {
 
 	if (finalApplicationFields) {
 		return (
-			<main className="h-screen pt-12 px-4 flex flex-col items-center">
-				<h1 className="text-2xl mb-8 font-bold">請選取上菜的時間</h1>
+			<main className="h-screen pt-6 md:pt-12 px-4 flex flex-col items-center">
+				<h1 className="text-2xl mb-4 md:mb-8">請選取欲在<span className="font-bold">水球軟體學院</span>中安排分享的時間</h1>
 				<ScheduleForm
 					applicationFields={finalApplicationFields}
 					onBookingSuccessful={(result) => {
